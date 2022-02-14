@@ -1,22 +1,84 @@
 from __future__ import division
 import argparse
 import pandas as pd
+from collections import defaultdict
+
 
 # useful stuff
 import numpy as np
 from scipy.special import expit
 from sklearn.preprocessing import normalize
+from nltk.tokenize import word_tokenize
 
+import nltk
+nltk.download('punkt')
+
+import nltk
+nltk.download('wordnet')
 
 __authors__ = ['author1','author2','author3']
 __emails__  = ['fatherchristmoas@northpole.dk','toothfairy@blackforest.no','easterbunny@greenfield.de']
+
+
+# Add more pre-processing functions
+def sent2word(path):
+    corpus=[]
+    with open(path) as f:
+        for line in f:
+            corpus.extend(word_tokenize(line))
+    corpus = [x.lower() for x in corpus] # first step of preprocessing, lowering the words
+    return corpus
+
+#defining the function to remove punctuation
+#library that contains punctuation
+import string
+def remove_punctuation(corpus):
+    punctuationfree=[]
+    punctuationfree.extend(i for i in corpus if i not in string.punctuation)
+    return punctuationfree
+
+# remove stopwords
+
+#Stop words present in the library
+stopwords = nltk.corpus.stopwords.words('english')
+def remove_stopwords(text):
+    output= [i for i in text if i not in stopwords]
+
+    return output
+
+# Lemmatization
+# It is also known as the text standardization step where the words are stemmed or diminished to their root/base form.
+# For example, words like ‘programmer’, ‘programming, ‘program’ will be stemmed to ‘program’.
+
+# It stems the word but makes sure that it does not lose its meaning.
+# Lemmatization has a pre-defined dictionary that stores the context of words and checks the word in the dictionary while diminishing.
+
+from nltk.stem import WordNetLemmatizer
+#defining the object for Lemmatization
+wordnet_lemmatizer = WordNetLemmatizer()
+
+#defining the function for lemmatization
+def lemmatizer(text):
+    lemm_text = [wordnet_lemmatizer.lemmatize(word) for word in text]
+    return lemm_text
+
 
 def text2sentences(path):
 	# feel free to make a better tokenization/pre-processing
 	sentences = []
 	with open(path) as f:
 		for l in f:
-			sentences.append( l.lower().split() )
+			sentences.append(l.lower().split())
+
+	# remove punctuations
+	sentences = [remove_punctuation(sent) for sent in sentences]
+
+	# Remove numbers
+	sentences = [list(filter(lambda x: x.isalpha(), sent)) for sent in sentences]
+
+	# Lemmatization
+	sentences = [lemmatizer(sent) for sent in sentences]
+
 	return sentences
 
 def loadPairs(path):
@@ -53,7 +115,7 @@ class SkipGram:
                     self.trainWord(wIdx, ctxtId, negativeIds)
                     self.trainWords += 1
 
-            if counter % 1000 == 0:
+            if counter % 100 == 0:
                 print ' > training %d of %d' % (counter, len(self.trainset))
                 self.loss.append(self.accLoss / self.trainWords)
                 self.trainWords = 0
