@@ -114,9 +114,6 @@ def text2sentences(path):
 # In[131]:
 
 
-sentences = text2sentences("train.txt")
-
-
 # # Define all helper functions
 
 # In[3]:
@@ -269,15 +266,15 @@ class mySkipGram:
 
         return negativeIds
 
-    # def loss_function(self, wordId, contextId, negativeIds):
-    #     """ Returns the loss for the given word, its context and the negative samples"""
-    #
-    #     l_sum = sigmoid(np.dot(self.W[wordId, :], self.C[contextId, :]))
-    #
-    #     for negativeId in negativeIds:
-    #         l_sum *= sigmoid(np.dot(self.W[negativeId, :], self.C[contextId, :]))
-    #
-    #     return l_sum
+    def loss_function(self, wordId, contextId, negativeIds):
+        """ Returns the loss for the given word, its context and the negative samples"""
+
+        l_sum = np.log(sigmoid(np.dot(self.input_embedding[wordId, :], self.output_weights[contextId, :])))
+
+        for negativeId in negativeIds:
+            l_sum *= np.log(sigmoid(-np.dot(self.input_embedding[negativeId, :], self.output_weights[contextId, :])))
+
+        return l_sum
 
     def train(self):
         for counter, sentence in enumerate(tqdm(self.trainset)):
@@ -297,15 +294,17 @@ class mySkipGram:
                     self.trainWord(wIdx, ctxtId, negativeIds)
 
                     # keep record of loss during training
-                    # self.accLoss += self.loss_function(wIdx,ctxtId, negativeIds)
-                    # self.trainWords += 1
+                    self.accLoss += self.loss_function(wIdx, ctxtId, negativeIds)
+                    self.trainWords += 1
 
-            # if counter % 100 == 0:
-            #     print (' > training %d of %d' % (counter, len(self.trainset)))
-            #     self.loss.append(self.accLoss / self.trainWords)
-            #     self.trainWords = 0
-            #     self.accLoss = 0
-            #     print(self.loss[-1])
+            if (counter+1) % 100 == 0:
+                print(' > training %d of %d' % (counter, len(self.trainset)))
+                self.loss.append(self.accLoss / self.trainWords)
+                self.trainWords = 0
+                self.accLoss = 0
+
+            if (counter + 1) % 1000 == 0:
+                print(self.loss[-1])
 
     # Back propagation
 
@@ -388,7 +387,7 @@ if __name__ == '__main__':
 
     if not opts.test:
         sentences = text2sentences(opts.text)
-        sg = mySkipGram(sentences)
+        sg = mySkipGram(sentences, minCount=2)
         sg.train()
         sg.save(opts.model)
 
