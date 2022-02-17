@@ -297,7 +297,7 @@ class mySkipGram:
                     self.accLoss += self.loss_function(wIdx, ctxtId, negativeIds)
                     self.trainWords += 1
 
-            if counter % 100 == 0:
+            if (counter+1) % 100 == 0:
                 print(' > training %d of %d' % (counter, len(self.trainset)))
                 self.loss.append(self.accLoss / self.trainWords)
                 self.trainWords = 0
