@@ -304,7 +304,7 @@ class mySkipGram:
                 self.accLoss = 0
 
             if (counter + 1) % 1000 == 0:
-            print(self.loss[-1])
+                print(self.loss[-1])
 
     # Back propagation
 
