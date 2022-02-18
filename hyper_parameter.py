@@ -7,8 +7,6 @@ Original file is located at
     https://colab.research.google.com/drive/1F0XlhK0CTNNAUCse_o71QTWQwVixMCF4
 """
 
-
-
 from __future__ import division
 import argparse
 import pandas as pd
@@ -98,7 +96,7 @@ def cosine_distance(vec1, vec2):
     return np.dot(vec1, vec2) / (np.sqrt(np.dot(vec1, vec1)) * np.sqrt(np.dot(vec2, vec2)))
 
 class mySkipGram:
-    def __init__(self, sentences, nEmbed=100, negativeRate=5, winSize=5, minCount=5, learning=0.01):
+    def __init__(self, sentences, nEmbed=150, negativeRate=10, winSize=9, minCount=6, learning=0.1):
 
         # Storing hyper parameters as class variables
         self.nEmbed = nEmbed
@@ -331,6 +329,7 @@ class mySkipGram:
 
 
 
+# sg.loss
 
 # nEmbed=100, negativeRate=5, winSize=5, minCount=5, learning=0.01
 
@@ -342,36 +341,29 @@ learning_ragne = (0.0001,0.001,0.01,0.1)
 
 len(nEmbed_range)*len(negativeRate_range)*len(winSize_range)*len(minCount_range)*len(learning_ragne)
 
+group_dict = {}
+loss_values = {}
+
+# random grid search
 best_estimator = [0,0,0,0,0]
-min_loss = float('inf')
+min_loss = -0.14673792546101652 #float('inf')
 
-for nEmbed in nEmbed_range:
-    for negativeRate in negativeRate_range:
-        for winSize in winSize_range:
-            for minCount in minCount_range:
-                for learning in learning_ragne:
-                    sg = mySkipGram(sentences,nEmbed, negativeRate, winSize, minCount, learning)
-                    sg.train()
-                    loss = np.abs(sg.loss[-1])
-                    if loss < min_loss:
-                        min_loss = loss
-                        best_estimator = [nEmbed, negativeRate, winSize, minCount, learning]
-                        print("up to now, best estimator:", best_estimator)
-                        print("with loss", min_loss)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+for i in range(100):
+  nEmbed = np.random.choice(nEmbed_range)
+  negativeRate = np.random.choice(negativeRate_range)
+  winSize = np.random.choice(winSize_range)
+  minCount = np.random.choice(minCount_range)
+  learning = np.random.choice(learning_ragne)
+  if [nEmbed,negativeRate,winSize,minCount,learning] not in group_dict.values():
+    group_dict[i] = [nEmbed,negativeRate,winSize,minCount,learning]
+    sg = mySkipGram(sentences,nEmbed, negativeRate, winSize, minCount, learning)
+    sg.train()
+    loss = sg.loss[-1]
+    if loss < min_loss:
+        min_loss = loss
+        best_estimator = [nEmbed, negativeRate, winSize, minCount, learning]
+        print("up to now, best estimator:", best_estimator)
+        print("with loss", min_loss)
+    loss_values[i] = loss
+  else:
+    continue
