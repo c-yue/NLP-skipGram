@@ -302,6 +302,8 @@ class mySkipGram:
                 self.loss.append(self.accLoss / self.trainWords)
                 self.trainWords = 0
                 self.accLoss = 0
+
+            if (counter + 1) % 1000 == 0:
                 print(self.loss[-1])
 
     # Back propagation
